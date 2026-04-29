@@ -386,6 +386,32 @@
       .flash-face .word { font-size: 2rem; }
       .landing-qr-link a { font-size: 1.25rem; }
     }
+
+    /* LIGHT THEME */
+    [data-theme="light"] {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface2: #eef0f6;
+      --border: #cdd2e8;
+      --text: #1a1d2e;
+      --text-muted: #616887;
+    }
+    [data-theme="light"] body { background: var(--bg); color: var(--text); }
+    [data-theme="light"] header svg circle { fill: #eef0f6; stroke: #cdd2e8; }
+    [data-theme="light"] .flash-face.back { background: #e8ecf8; }
+    [data-theme="light"] .feedback-bar.correct-bar { background: #e6f9d8; }
+    [data-theme="light"] .feedback-bar.wrong-bar { background: #fde8e8; }
+    [data-theme="light"] .reward-banner { background: linear-gradient(135deg, #d8f5c0, #ecdcff); }
+    [data-theme="light"] .typing-input { color: var(--text); }
+
+    /* THEME TOGGLE BTN */
+    .theme-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 12px;
+      font-size: 1.2rem; cursor: pointer; transition: all 0.2s;
+      line-height: 1;
+    }
+    .theme-btn:hover { border-color: var(--accent); transform: scale(1.1); }
   </style>
 </head>
 <body>
@@ -424,6 +450,7 @@
       <span class="dot dot-purple"></span>
       <span id="stat-xp">0</span>&nbsp;XP
     </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Tema claro/oscuro">🌙</button>
   </div>
 </header>
 
@@ -986,6 +1013,22 @@ function modeLabel(m) {
 }
 
 updateHeartsDisplay();
+
+// ── THEME ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') !== 'light';
+  const next = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  document.getElementById('theme-btn').textContent = next === 'light' ? '☀️' : '🌙';
+  localStorage.setItem('skarmeta-theme', next);
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem('skarmeta-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('theme-btn').textContent = saved === 'light' ? '☀️' : '🌙';
+})();
 </script>
 </body>
 </html>
