@@ -53,13 +53,13 @@
     .header-brand { display: flex; align-items: center; gap: 10px; }
     .header-brand svg { width: 32px; height: 32px; }
     .header-brand h1 {
-      font-size: 1.1rem; font-weight: 700;
+      font-size: 1.3rem; font-weight: 700;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
     }
     .header-brand p {
-      font-size: 0.72rem; color: var(--text-muted); font-weight: 400;
+      font-size: 0.85rem; color: var(--text-muted); font-weight: 400;
       -webkit-text-fill-color: var(--text-muted);
     }
     .header-stats { display: flex; gap: 16px; }
@@ -67,7 +67,7 @@
       display: flex; align-items: center; gap: 6px;
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 20px; padding: 6px 14px;
-      font-size: 0.82rem; font-weight: 600;
+      font-size: 1rem; font-weight: 600;
     }
     .dot { width: 8px; height: 8px; border-radius: 50%; }
     .dot-green { background: var(--accent); }
@@ -81,7 +81,7 @@
     }
     .progress-meta {
       display: flex; justify-content: space-between;
-      font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;
+      font-size: 0.95rem; color: var(--text-muted); margin-bottom: 8px;
     }
     .progress-bar {
       height: 10px; background: var(--surface2);
@@ -105,15 +105,33 @@
 
     /* LANDING */
     #screen-landing { text-align: center; padding-top: 24px; }
-    #screen-landing h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; }
-    #screen-landing p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 36px; line-height: 1.6; }
+    #screen-landing h2 { font-size: 2.4rem; font-weight: 800; margin-bottom: 10px; }
+    #screen-landing > p { color: var(--text-muted); font-size: 1.15rem; margin-bottom: 28px; line-height: 1.6; }
+
+    .landing-qr {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 14px; margin-bottom: 32px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 20px;
+    }
+    .landing-qr img { border-radius: 10px; }
+    .landing-qr-link {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .landing-qr-link span { font-size: 0.9rem; color: var(--text-muted); }
+    .landing-qr-link a {
+      font-size: 1.5rem; font-weight: 800; color: var(--accent);
+      text-decoration: none; letter-spacing: 0.01em;
+    }
+    .landing-qr-link a:hover { text-decoration: underline; }
+
     .level-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px; margin-bottom: 32px;
     }
     .level-card {
       background: var(--surface); border: 2px solid var(--border);
-      border-radius: var(--radius); padding: 22px 16px;
+      border-radius: var(--radius); padding: 26px 20px;
       cursor: pointer; transition: all 0.2s; text-align: left; position: relative; overflow: hidden;
     }
     .level-card::before {
@@ -127,17 +145,17 @@
       box-shadow: 0 8px 32px rgba(88,204,2,0.12);
     }
     .level-card .lv-badge {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+      font-size: 0.85rem; font-weight: 700; letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
     }
-    .level-card .lv-name { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
-    .level-card .lv-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
-    .level-card .lv-icon { font-size: 2rem; margin-bottom: 12px; }
+    .level-card .lv-name { font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+    .level-card .lv-desc { font-size: 1rem; color: var(--text-muted); line-height: 1.4; }
+    .level-card .lv-icon { font-size: 2.5rem; margin-bottom: 14px; }
 
     /* MODE SELECT */
     #screen-mode { text-align: center; }
-    .mode-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
-    .mode-sub { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 32px; }
+    .mode-title { font-size: 1.9rem; font-weight: 800; margin-bottom: 8px; }
+    .mode-sub { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 32px; }
     .mode-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px;
     }
@@ -148,19 +166,19 @@
     }
     .mode-card:hover { border-color: var(--accent); transform: translateY(-2px); }
     .mode-card.selected { border-color: var(--accent); background: rgba(88,204,2,0.07); }
-    .mode-card .mode-icon { font-size: 2.4rem; margin-bottom: 12px; }
-    .mode-card .mode-name { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
-    .mode-card .mode-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+    .mode-card .mode-icon { font-size: 2.8rem; margin-bottom: 14px; }
+    .mode-card .mode-name { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .mode-card .mode-desc { font-size: 1rem; color: var(--text-muted); line-height: 1.4; }
 
     /* FLASHCARD */
     #screen-flash { text-align: center; }
     .exercise-label {
-      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+      font-size: 0.9rem; font-weight: 700; letter-spacing: 0.1em;
       text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px;
     }
     .flash-card {
       perspective: 1000px; margin: 0 auto 28px;
-      width: 100%; height: 240px; cursor: pointer;
+      width: 100%; height: 300px; cursor: pointer;
     }
     .flash-inner {
       position: relative; width: 100%; height: 100%;
@@ -177,50 +195,50 @@
     }
     .flash-face.back { transform: rotateY(180deg); background: #1c1f35; }
     .flash-face .lang-tag {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px;
-      border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px;
+      font-size: 0.88rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px;
+      border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px;
     }
-    .flash-face .word { font-size: 1.9rem; font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
+    .flash-face .word { font-size: 2.6rem; font-weight: 800; line-height: 1.2; margin-bottom: 14px; }
     .flash-face .context {
-      font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;
-      font-style: italic; max-width: 380px;
+      font-size: 1.05rem; color: var(--text-muted); line-height: 1.5;
+      font-style: italic; max-width: 420px;
     }
     .flash-face .hint-tap {
       position: absolute; bottom: 14px;
-      font-size: 0.72rem; color: var(--text-muted);
+      font-size: 0.88rem; color: var(--text-muted);
     }
     .flash-face.back .category {
-      margin-top: 14px; font-size: 0.72rem; color: var(--accent2);
-      border: 1px solid var(--accent2); border-radius: 20px; padding: 2px 10px;
+      margin-top: 14px; font-size: 0.88rem; color: var(--accent2);
+      border: 1px solid var(--accent2); border-radius: 20px; padding: 4px 12px;
     }
     .flash-nav { display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; }
     .flash-nav button {
       background: var(--surface2); border: 1px solid var(--border);
       color: var(--text); border-radius: var(--radius-sm);
-      padding: 10px 22px; font-size: 0.88rem; font-weight: 600;
+      padding: 12px 28px; font-size: 1.05rem; font-weight: 600;
       cursor: pointer; transition: all 0.15s;
     }
     .flash-nav button:hover { border-color: var(--accent); color: var(--accent); }
-    .flash-counter { color: var(--text-muted); font-size: 0.82rem; margin-bottom: 16px; }
+    .flash-counter { color: var(--text-muted); font-size: 1rem; margin-bottom: 16px; }
 
     /* QUIZ */
     #screen-quiz { text-align: center; }
     .quiz-question-wrap {
       background: var(--surface); border: 2px solid var(--border);
-      border-radius: var(--radius); padding: 36px 28px; margin-bottom: 28px;
+      border-radius: var(--radius); padding: 40px 32px; margin-bottom: 28px;
     }
     .quiz-direction {
-      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;
+      font-size: 0.9rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 18px;
     }
-    .quiz-word { font-size: 2rem; font-weight: 800; margin-bottom: 10px; }
-    .quiz-context { font-size: 0.82rem; color: var(--text-muted); font-style: italic; line-height: 1.5; }
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .quiz-word { font-size: 2.8rem; font-weight: 800; margin-bottom: 14px; }
+    .quiz-context { font-size: 1.1rem; color: var(--text-muted); font-style: italic; line-height: 1.5; }
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
     .option-btn {
       background: var(--surface); border: 2px solid var(--border);
-      border-radius: var(--radius-sm); padding: 16px 14px;
-      font-size: 0.92rem; font-weight: 600; color: var(--text);
+      border-radius: var(--radius-sm); padding: 20px 18px;
+      font-size: 1.15rem; font-weight: 600; color: var(--text);
       cursor: pointer; transition: all 0.15s; text-align: left; line-height: 1.3;
     }
     .option-btn:hover:not(:disabled) { border-color: var(--accent2); background: rgba(206,130,255,0.07); }
@@ -240,15 +258,15 @@
     .feedback-bar.correct-bar { background: #162716; border-top: 3px solid var(--accent); }
     .feedback-bar.wrong-bar { background: #2e1111; border-top: 3px solid var(--danger); }
     .feedback-content { display: flex; align-items: center; gap: 14px; }
-    .feedback-icon { font-size: 1.8rem; }
-    .feedback-text h3 { font-size: 1rem; font-weight: 700; }
-    .feedback-text p { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+    .feedback-icon { font-size: 2.2rem; }
+    .feedback-text h3 { font-size: 1.25rem; font-weight: 700; }
+    .feedback-text p { font-size: 1rem; color: var(--text-muted); margin-top: 4px; }
     .feedback-bar.correct-bar .feedback-text h3 { color: var(--accent); }
     .feedback-bar.wrong-bar .feedback-text h3 { color: var(--danger); }
     .feedback-next-btn {
       background: var(--accent); color: #000; border: none;
-      border-radius: var(--radius-sm); padding: 12px 28px;
-      font-size: 0.92rem; font-weight: 800; cursor: pointer; transition: background 0.15s;
+      border-radius: var(--radius-sm); padding: 14px 32px;
+      font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: background 0.15s;
     }
     .feedback-next-btn:hover { background: #6ee803; }
     .feedback-bar.wrong-bar .feedback-next-btn { background: var(--danger); color: #fff; }
@@ -256,50 +274,50 @@
     /* RESULTS */
     #screen-results { text-align: center; padding-top: 20px; }
     .result-trophy {
-      font-size: 4.5rem; margin-bottom: 16px; display: block;
+      font-size: 5rem; margin-bottom: 16px; display: block;
       animation: bounceIn 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
     }
     @keyframes bounceIn {
       from { transform: scale(0); opacity: 0; }
       to   { transform: scale(1); opacity: 1; }
     }
-    .result-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
-    .result-subtitle { color: var(--text-muted); margin-bottom: 32px; font-size: 0.92rem; }
+    .result-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; }
+    .result-subtitle { color: var(--text-muted); margin-bottom: 32px; font-size: 1.1rem; }
     .result-score-ring {
-      width: 150px; height: 150px; margin: 0 auto 28px; position: relative;
+      width: 160px; height: 160px; margin: 0 auto 28px; position: relative;
     }
     .result-score-ring svg { transform: rotate(-90deg); }
     .result-score-ring .score-text {
       position: absolute; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-    .result-score-ring .score-pct { font-size: 2.2rem; font-weight: 800; }
-    .result-score-ring .score-lbl { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
-    .result-stats-row { display: flex; justify-content: center; gap: 28px; margin-bottom: 32px; }
+    .result-score-ring .score-pct { font-size: 2.5rem; font-weight: 800; }
+    .result-score-ring .score-lbl { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+    .result-stats-row { display: flex; justify-content: center; gap: 32px; margin-bottom: 32px; }
     .result-stat { text-align: center; }
-    .result-stat .val { font-size: 1.5rem; font-weight: 800; }
-    .result-stat .lbl { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+    .result-stat .val { font-size: 2rem; font-weight: 800; }
+    .result-stat .lbl { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
     .val.green { color: var(--accent); }
     .val.red { color: var(--danger); }
     .val.purple { color: var(--accent2); }
     .result-msg {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 18px 22px;
-      font-size: 0.88rem; line-height: 1.6; margin-bottom: 28px;
+      border-radius: var(--radius); padding: 20px 24px;
+      font-size: 1.1rem; line-height: 1.7; margin-bottom: 28px;
       color: var(--text-muted); text-align: left;
     }
     .result-msg strong { color: var(--text); }
 
     .btn-primary {
       background: var(--accent); color: #000; border: none;
-      border-radius: var(--radius-sm); padding: 14px 36px;
-      font-size: 1rem; font-weight: 800; cursor: pointer; transition: background 0.15s;
+      border-radius: var(--radius-sm); padding: 16px 40px;
+      font-size: 1.15rem; font-weight: 800; cursor: pointer; transition: background 0.15s;
     }
     .btn-primary:hover { background: #6ee803; }
     .btn-secondary {
       background: transparent; color: var(--text);
       border: 2px solid var(--border); border-radius: var(--radius-sm);
-      padding: 13px 28px; font-size: 0.92rem; font-weight: 700;
+      padding: 15px 32px; font-size: 1.1rem; font-weight: 700;
       cursor: pointer; transition: all 0.15s; margin-left: 12px;
     }
     .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
@@ -307,8 +325,8 @@
     .streak-popup {
       position: fixed; top: 80px; right: 24px;
       background: var(--surface2); border: 2px solid var(--accent3);
-      border-radius: var(--radius-sm); padding: 10px 16px;
-      font-size: 0.82rem; font-weight: 700; color: var(--accent3);
+      border-radius: var(--radius-sm); padding: 12px 20px;
+      font-size: 1rem; font-weight: 700; color: var(--accent3);
       z-index: 800; opacity: 0; transform: translateX(60px);
       transition: all 0.35s;
     }
@@ -320,18 +338,18 @@
     .typing-wrap { margin-bottom: 20px; }
     .typing-input {
       width: 100%; background: var(--surface); border: 2px solid var(--border);
-      border-radius: var(--radius-sm); padding: 16px 18px;
-      font-size: 1.1rem; font-weight: 600; color: var(--text);
+      border-radius: var(--radius-sm); padding: 18px 20px;
+      font-size: 1.35rem; font-weight: 600; color: var(--text);
       outline: none; transition: border-color 0.15s;
     }
     .typing-input:focus { border-color: var(--accent2); }
     .typing-input.correct { border-color: var(--accent); }
     .typing-input.wrong { border-color: var(--danger); }
-    .typing-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 8px; text-align: left; }
+    .typing-hint { font-size: 1rem; color: var(--text-muted); margin-top: 10px; text-align: left; }
     .check-btn {
       width: 100%; background: var(--accent2); color: #fff; border: none;
-      border-radius: var(--radius-sm); padding: 14px;
-      font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-top: 12px;
+      border-radius: var(--radius-sm); padding: 16px;
+      font-size: 1.15rem; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-top: 12px;
     }
     .check-btn:hover { background: #b56ae0; }
     .check-btn:disabled { opacity: 0.4; cursor: default; }
@@ -346,13 +364,13 @@
       from { opacity:0; transform: translateY(-16px); }
       to   { opacity:1; transform: translateY(0); }
     }
-    .reward-banner .reward-stars { font-size: 1.6rem; margin-bottom: 8px; }
-    .reward-banner h3 { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
-    .reward-banner p { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
+    .reward-banner .reward-stars { font-size: 2rem; margin-bottom: 10px; }
+    .reward-banner h3 { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+    .reward-banner p { font-size: 1rem; color: var(--text-muted); margin-top: 6px; }
 
     .back-link {
       display: inline-flex; align-items: center; gap: 6px;
-      color: var(--text-muted); font-size: 0.82rem; font-weight: 600;
+      color: var(--text-muted); font-size: 1rem; font-weight: 600;
       cursor: pointer; margin-bottom: 24px; transition: color 0.15s;
       background: none; border: none;
     }
@@ -363,6 +381,10 @@
       .mode-grid { grid-template-columns: 1fr; }
       header { padding: 12px 16px; }
       .header-stats { gap: 8px; }
+      #screen-landing h2 { font-size: 1.9rem; }
+      .quiz-word { font-size: 2.2rem; }
+      .flash-face .word { font-size: 2rem; }
+      .landing-qr-link a { font-size: 1.25rem; }
     }
   </style>
 </head>
@@ -420,6 +442,16 @@
     <h2>Bienvenidos al Vocabulario</h2>
     <p>Begriffe aus <em>La realidad chilena en la literatura de Antonio Skármeta</em>.<br>
        Wähle dein Level und starte die Übung.</p>
+
+    <div class="landing-qr">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://albecabrera.github.io/antonio_skarmenta/&color=58cc02&bgcolor=1a1d2e&margin=12"
+           alt="QR Code zum Spiel" width="160" height="160">
+      <div class="landing-qr-link">
+        <span>Kurzlink zum Spiel:</span>
+        <a href="https://tinyurl.com/2d8762ey" target="_blank">tinyurl.com/2d8762ey</a>
+      </div>
+    </div>
+
     <div class="level-grid">
       <div class="level-card lv1" onclick="selectLevel(1)">
         <div class="lv-icon">📖</div>
