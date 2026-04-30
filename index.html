@@ -457,6 +457,37 @@
       .mem-front { font-size: 1.3rem; }
     }
 
+    /* RACE GAME */
+    #screen-race { text-align: center; }
+    #race-canvas {
+      width: 100%; max-width: 632px; height: 180px;
+      border-radius: var(--radius); border: 2px solid var(--border);
+      display: block; margin: 0 auto 14px;
+    }
+    .race-match-area { max-width: 560px; margin: 0 auto; }
+    .race-feedback {
+      min-height: 28px; font-size: 1.05rem; font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .race-pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .race-col { display: flex; flex-direction: column; gap: 8px; }
+    .race-word-btn {
+      background: var(--surface); border: 2px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      font-size: 1rem; font-weight: 600; color: var(--text);
+      cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.3;
+    }
+    .race-word-btn:hover:not(:disabled) { border-color: var(--accent2); background: rgba(206,130,255,0.08); }
+    .race-word-btn.selected { border-color: var(--accent2); background: rgba(206,130,255,0.15); color: var(--accent2); }
+    .race-word-btn.correct { border-color: var(--accent); background: rgba(88,204,2,0.12); color: var(--accent); cursor: default; }
+    .race-word-btn.wrong { border-color: var(--danger); background: rgba(255,75,75,0.1); animation: raceWrong 0.4s; }
+    .race-round-info { font-size: 0.95rem; color: var(--text-muted); margin-top: 12px; font-weight: 600; }
+    @keyframes raceWrong {
+      0%,100% { transform: translateX(0); }
+      25%,75% { transform: translateX(-7px); }
+      50% { transform: translateX(7px); }
+    }
+
     /* ASTEROID GAME */
     #screen-asteroids { text-align: center; }
     .ast-score-wrap { max-width: 460px; margin: 0 auto 14px; }
@@ -659,6 +690,11 @@
         <div class="mode-name">Asteroiden</div>
         <div class="mode-desc">Übersetze Wörter bevor der Asteroid trifft. Erreiche 10 Punkte!</div>
       </div>
+      <div class="mode-card" id="mode-race" onclick="selectMode('race')">
+        <div class="mode-icon">🏎️</div>
+        <div class="mode-name">Autorennen</div>
+        <div class="mode-desc">Verknüpfe Wortpaare richtig und bring dein Auto ins Ziel!</div>
+      </div>
     </div>
     <button class="btn-primary" onclick="startExercise()">Starten →</button>
   </div>
@@ -747,6 +783,21 @@
       <p id="mem-win-msg"></p>
       <button class="btn-primary" onclick="startMemory()">Nochmal →</button>
       <button class="btn-secondary" onclick="goTo('mode')">Zurück</button>
+    </div>
+  </div>
+
+  <!-- RACE GAME -->
+  <div id="screen-race" class="screen">
+    <button class="back-link" onclick="stopRaceGame(); goTo('mode')">← Abbrechen</button>
+    <div class="exercise-label">🏎️ Autorennen · <span id="race-level-label"></span></div>
+    <canvas id="race-canvas" width="632" height="180"></canvas>
+    <div class="race-match-area">
+      <div class="race-feedback" id="race-feedback">&nbsp;</div>
+      <div class="race-pairs">
+        <div class="race-col" id="race-col-left"></div>
+        <div class="race-col" id="race-col-right"></div>
+      </div>
+      <div class="race-round-info" id="race-round-info">Runde 1 / 6</div>
     </div>
   </div>
 
@@ -916,6 +967,7 @@ function startExercise() {
   else if (state.mode === 'verb') startVerb();
   else if (state.mode === 'memory') startMemory();
   else if (state.mode === 'asteroids') startAsteroidGame();
+  else if (state.mode === 'race') startRaceGame();
   else startQuiz();
 }
 
@@ -1131,6 +1183,7 @@ function restartSameMode() {
   document.getElementById('reward-banner').classList.remove('show');
   if (state.mode === 'verb') startVerb();
   else if (state.mode === 'asteroids') startAsteroidGame();
+  else if (state.mode === 'race') startRaceGame();
   else startQuiz();
 }
 
@@ -1206,7 +1259,7 @@ function shuffle(arr) {
 }
 
 function modeLabel(m) {
-  return { flash:'Karteikarten', 'mc-es-de':'Spanisch→Deutsch', 'mc-de-es':'Deutsch→Spanisch', type:'Eintippen', verb:'Verbkonjugation', memory:'Memory', asteroids:'Asteroiden' }[m] || m;
+  return { flash:'Karteikarten', 'mc-es-de':'Spanisch→Deutsch', 'mc-de-es':'Deutsch→Spanisch', type:'Eintippen', verb:'Verbkonjugation', memory:'Memory', asteroids:'Asteroiden', race:'Autorennen' }[m] || m;
 }
 
 updateHeartsDisplay();
@@ -1412,6 +1465,288 @@ function memoryWin() {
     memState.moves + ' Züge · +' + state.xp + ' XP verdient!';
   win.classList.add('show');
   setTimeout(launchKonfetti, 300);
+}
+
+// ── RACE GAME ──
+const RACE_PAIRS = 4;
+const RACE_ROUNDS = 6;
+
+let raceState = {
+  running: false, raf: null, canvas: null, ctx: null,
+  carX: 0, carTargetX: 0,
+  rounds: [], currentRound: 0,
+  leftItems: [], rightItems: [], matched: null,
+  selectedLeft: null, awaitingFeedback: false,
+  roadOffset: 0, boosting: false, trees: [],
+};
+
+function startRaceGame() {
+  if (raceState.raf) cancelAnimationFrame(raceState.raf);
+  const vocab = shuffle([...state.currentSet]);
+  raceState.rounds = Array.from({length: RACE_ROUNDS}, (_, i) =>
+    Array.from({length: RACE_PAIRS}, (__, j) => vocab[(i * RACE_PAIRS + j) % vocab.length])
+  );
+  Object.assign(raceState, {
+    running: true, carX: 0, carTargetX: 0,
+    currentRound: 0, selectedLeft: null, awaitingFeedback: false,
+    roadOffset: 0, boosting: false,
+  });
+  state.lives = 3; state.streak = 0; state.xp = 0;
+  updateHeartsDisplay();
+  const canvas = document.getElementById('race-canvas');
+  raceState.canvas = canvas;
+  raceState.ctx = canvas.getContext('2d');
+  canvas.width = Math.min(window.innerWidth - 48, 632);
+  canvas.height = 180;
+  // Init tree positions across track width
+  raceState.trees = [0.07, 0.23, 0.40, 0.57, 0.74, 0.91].map(f => f * canvas.width);
+  document.getElementById('race-level-label').textContent = LEVEL_NAMES[state.level];
+  goTo('race');
+  raceRenderPairs();
+  raceLoop();
+}
+
+function stopRaceGame() {
+  raceState.running = false;
+  if (raceState.raf) { cancelAnimationFrame(raceState.raf); raceState.raf = null; }
+}
+
+function raceRenderPairs() {
+  const pairs = raceState.rounds[raceState.currentRound];
+  raceState.leftItems = pairs.map((p, i) => ({ text: p.es, idx: i }));
+  raceState.rightItems = shuffle(pairs.map((p, i) => ({ text: shortDE(p.de), idx: i })));
+  raceState.matched = new Set();
+  raceState.selectedLeft = null;
+
+  const lCol = document.getElementById('race-col-left');
+  const rCol = document.getElementById('race-col-right');
+  lCol.innerHTML = ''; rCol.innerHTML = '';
+  raceState.leftItems.forEach((item, i) => {
+    const b = document.createElement('button');
+    b.className = 'race-word-btn'; b.textContent = item.text; b.dataset.idx = i;
+    b.onclick = () => raceClickLeft(i);
+    lCol.appendChild(b);
+  });
+  raceState.rightItems.forEach((item, i) => {
+    const b = document.createElement('button');
+    b.className = 'race-word-btn'; b.textContent = item.text; b.dataset.ridx = i;
+    b.onclick = () => raceClickRight(i);
+    rCol.appendChild(b);
+  });
+  document.getElementById('race-round-info').textContent =
+    'Runde ' + (raceState.currentRound + 1) + ' / ' + RACE_ROUNDS;
+  document.getElementById('race-feedback').innerHTML = '&nbsp;';
+}
+
+function raceClickLeft(i) {
+  if (raceState.matched.has('L' + i)) return;
+  raceState.selectedLeft = i;
+  document.querySelectorAll('#race-col-left .race-word-btn').forEach((b, idx) => {
+    b.classList.toggle('selected', idx === i && !raceState.matched.has('L' + idx));
+  });
+}
+
+function raceClickRight(i) {
+  if (raceState.awaitingFeedback || raceState.selectedLeft === null) return;
+  if (raceState.matched.has('R' + i)) return;
+  const li = raceState.selectedLeft;
+  const ok = raceState.leftItems[li].idx === raceState.rightItems[i].idx;
+  const lBtns = document.querySelectorAll('#race-col-left .race-word-btn');
+  const rBtns = document.querySelectorAll('#race-col-right .race-word-btn');
+  const fb = document.getElementById('race-feedback');
+
+  if (ok) {
+    raceState.matched.add('L' + li); raceState.matched.add('R' + i);
+    lBtns[li].className = 'race-word-btn correct'; lBtns[li].disabled = true;
+    rBtns[i].className = 'race-word-btn correct';  rBtns[i].disabled = true;
+    raceState.selectedLeft = null;
+    state.xp += 10; state.streak++;
+    document.getElementById('stat-streak').textContent = state.streak;
+    if (state.streak % 3 === 0 && state.streak > 0) showStreakPopup(state.streak);
+    fb.innerHTML = '✅ <strong>' + raceState.leftItems[li].text + '</strong> = ' + raceState.rightItems[i].text;
+    fb.style.color = 'var(--accent)';
+    if (raceState.matched.size === RACE_PAIRS * 2) setTimeout(raceRoundDone, 600);
+  } else {
+    raceState.awaitingFeedback = true;
+    lBtns[li].classList.add('wrong'); rBtns[i].classList.add('wrong');
+    lBtns[li].classList.remove('selected');
+    fb.textContent = '❌ Falsch! Versuche es nochmal.';
+    fb.style.color = 'var(--danger)';
+    state.streak = 0; document.getElementById('stat-streak').textContent = 0;
+    setTimeout(() => {
+      lBtns[li].classList.remove('wrong');
+      rBtns[i].classList.remove('wrong');
+      raceState.selectedLeft = null;
+      raceState.awaitingFeedback = false;
+    }, 550);
+  }
+}
+
+function raceRoundDone() {
+  raceState.currentRound++;
+  raceState.carTargetX = raceState.currentRound / RACE_ROUNDS;
+  raceState.boosting = true;
+  setTimeout(() => { raceState.boosting = false; }, 1600);
+  if (raceState.currentRound >= RACE_ROUNDS) {
+    raceState.carTargetX = 1.06;
+    setTimeout(() => { stopRaceGame(); raceShowWin(); }, 2200);
+  } else {
+    setTimeout(raceRenderPairs, 900);
+  }
+}
+
+function raceLoop() {
+  if (!raceState.running) return;
+  const { canvas, ctx } = raceState;
+  raceState.carX += (raceState.carTargetX - raceState.carX) * 0.05;
+  const spd = raceState.boosting ? 4.5 : 0;
+  if (spd > 0) {
+    raceState.roadOffset += spd;
+    raceState.trees = raceState.trees.map(x => {
+      x -= spd * 0.35;
+      if (x < -50) x += canvas.width + 100;
+      return x;
+    });
+  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  raceDrawScene(ctx, canvas);
+  raceState.raf = requestAnimationFrame(raceLoop);
+}
+
+function raceDrawScene(ctx, canvas) {
+  const W = canvas.width, H = canvas.height;
+  const hY = H * 0.46;
+
+  // Sky
+  const sky = ctx.createLinearGradient(0, 0, 0, hY);
+  sky.addColorStop(0, '#0d47a1'); sky.addColorStop(1, '#42a5f5');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, hY);
+
+  // Clouds
+  [[W * 0.15, hY * 0.25], [W * 0.5, hY * 0.15], [W * 0.78, hY * 0.3]].forEach(([cx, cy]) => {
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    [0, 1, -1].forEach(dx => {
+      ctx.beginPath(); ctx.arc(cx + dx * 14, cy, 13 - Math.abs(dx) * 3, 0, Math.PI * 2); ctx.fill();
+    });
+  });
+
+  // Grass
+  ctx.fillStyle = '#388e3c'; ctx.fillRect(0, hY, W, H - hY);
+
+  // Road surface
+  ctx.fillStyle = '#546e7a'; ctx.fillRect(0, hY + 10, W, H - hY - 10);
+
+  // Curb stripes top
+  const cw = 28;
+  for (let i = 0; i <= Math.ceil(W / cw) + 1; i++) {
+    const rx = i * cw - (raceState.roadOffset % cw);
+    ctx.fillStyle = i % 2 === 0 ? '#e53935' : '#fff';
+    ctx.fillRect(rx, hY + 10, cw, 8);
+    ctx.fillStyle = i % 2 === 0 ? '#e53935' : '#fff';
+    ctx.fillRect(rx, H - 8, cw, 8);
+  }
+
+  // Center dashes
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 3;
+  ctx.setLineDash([20, 16]); ctx.lineDashOffset = -(raceState.roadOffset % 36);
+  const midY = hY + (H - hY) / 2;
+  ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Trees
+  raceState.trees.forEach(tx => raceDrawTree(ctx, tx, hY + 4));
+
+  // Finish line
+  raceDrawFinish(ctx, W * 0.90, hY, H);
+
+  // Car
+  const carXpx = W * 0.04 + raceState.carX * W * 0.82;
+  raceDrawCar(ctx, Math.min(carXpx, W * 0.95), hY + (H - hY) * 0.32, raceState.boosting);
+}
+
+function raceDrawTree(ctx, x, y) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = '#5d4037'; ctx.fillRect(-4, -12, 8, 16);
+  ctx.fillStyle = '#1b5e20';
+  ctx.beginPath(); ctx.moveTo(0, -42); ctx.lineTo(-17, -10); ctx.lineTo(17, -10); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2e7d32';
+  ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(-13, -6); ctx.lineTo(13, -6); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function raceDrawFinish(ctx, x, hY, H) {
+  ctx.fillStyle = '#fff'; ctx.fillRect(x - 2, hY - 42, 4, 46);
+  const fw = 36, fh = 24, rows = 3, cols = 4;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    ctx.fillStyle = (r + c) % 2 === 0 ? '#fff' : '#111';
+    ctx.fillRect(x + c * (fw / cols), hY - 42 + r * (fh / rows), fw / cols, fh / rows);
+  }
+  ctx.save();
+  ctx.font = 'bold 10px sans-serif'; ctx.fillStyle = '#ffeb3b';
+  ctx.textAlign = 'center'; ctx.shadowBlur = 3; ctx.shadowColor = '#000';
+  ctx.fillText('FINISH', x + fw / 2, hY + 14);
+  ctx.restore();
+}
+
+function raceDrawCar(ctx, x, y, boosting) {
+  ctx.save(); ctx.translate(x, y);
+  // Exhaust
+  if (boosting) {
+    [0, 1, 2].forEach(i => {
+      ctx.save(); ctx.globalAlpha = 0.75 - i * 0.22;
+      ctx.fillStyle = i % 2 === 0 ? '#ff9600' : '#ff5722';
+      ctx.beginPath(); ctx.ellipse(-29 - i * 10, 3, 11 + i * 4, 5, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.restore();
+    });
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1.5;
+    [-5, 1, 7].forEach(dy => {
+      ctx.beginPath(); ctx.moveTo(-38, dy); ctx.lineTo(-26, dy); ctx.stroke();
+    });
+  }
+  // Body
+  ctx.fillStyle = '#e53935'; ctx.fillRect(-28, -12, 56, 20);
+  // Roof
+  ctx.fillStyle = '#b71c1c'; ctx.fillRect(-15, -24, 30, 14);
+  // Windows
+  ctx.fillStyle = '#90caf9';
+  ctx.fillRect(-12, -22, 11, 9);
+  ctx.fillRect(3, -22, 10, 9);
+  // Headlight
+  ctx.fillStyle = '#fff59d'; ctx.fillRect(26, -4, 4, 6);
+  // Wheels
+  [-15, 14].forEach(wx => {
+    ctx.fillStyle = '#212121';
+    ctx.beginPath(); ctx.arc(wx, 10, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#9e9e9e';
+    ctx.beginPath(); ctx.arc(wx, 10, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#616161'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(wx - 4, 10); ctx.lineTo(wx + 4, 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(wx, 6); ctx.lineTo(wx, 14); ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function raceShowWin() {
+  state.totalXP += state.xp;
+  document.getElementById('stat-xp').textContent = state.totalXP;
+  document.getElementById('result-trophy').textContent = '🏆';
+  document.getElementById('result-title').textContent = '¡Ziel erreicht! Rennen gewonnen!';
+  document.getElementById('result-subtitle').textContent = LEVEL_NAMES[state.level] + ' · Autorennen';
+  document.getElementById('res-correct').textContent = RACE_ROUNDS * RACE_PAIRS;
+  document.getElementById('res-wrong').textContent = 0;
+  document.getElementById('res-xp').textContent = '+' + state.xp;
+  document.getElementById('score-pct').textContent = '100%';
+  document.getElementById('result-msg').innerHTML =
+    '<strong>¡Excelente!</strong> Du hast alle ' + (RACE_ROUNDS * RACE_PAIRS) +
+    ' Wortpaare korrekt verknüpft und die Ziellinie überquert. Dein Auto hat das Rennen gewonnen!';
+  setTimeout(() => {
+    const ring = document.getElementById('score-ring');
+    ring.style.strokeDashoffset = 0; ring.style.stroke = '#58cc02';
+  }, 200);
+  document.getElementById('reward-banner').classList.add('show');
+  setTimeout(launchKonfetti, 400);
+  goTo('results');
+  document.getElementById('progress-wrap').style.display = 'none';
 }
 
 // ── ASTEROID GAME ──
