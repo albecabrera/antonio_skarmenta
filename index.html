@@ -378,13 +378,83 @@
 
     @media (max-width: 540px) {
       .options-grid { grid-template-columns: 1fr; }
-      .mode-grid { grid-template-columns: 1fr; }
       header { padding: 12px 16px; }
       .header-stats { gap: 8px; }
       #screen-landing h2 { font-size: 1.9rem; }
       .quiz-word { font-size: 2.2rem; }
       .flash-face .word { font-size: 2rem; }
       .landing-qr-link a { font-size: 1.25rem; }
+    }
+
+    /* VERB CONJUGATION */
+    #screen-verb { text-align: center; }
+    .verb-card {
+      background: var(--surface); border: 2px solid var(--border);
+      border-radius: var(--radius); padding: 36px 32px; margin-bottom: 24px;
+      text-align: left;
+    }
+    .verb-badges { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .verb-badge {
+      font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; border-radius: 20px; padding: 5px 14px;
+    }
+    .verb-badge.tense { background: rgba(88,204,2,0.12); color: var(--accent); border: 1px solid var(--accent); }
+    .verb-badge.person { background: rgba(206,130,255,0.12); color: var(--accent2); border: 1px solid var(--accent2); }
+    .verb-inf { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+    .verb-subject { font-size: 1rem; color: var(--text-muted); margin-bottom: 20px; }
+    .verb-sentence { font-size: 1.3rem; line-height: 1.7; color: var(--text); font-style: italic; }
+    .verb-sentence .gap {
+      display: inline-block; background: var(--surface2);
+      border-bottom: 3px solid var(--accent2); color: var(--accent2);
+      font-style: normal; font-weight: 800; padding: 2px 14px;
+      border-radius: 4px; min-width: 90px; text-align: center;
+    }
+
+    /* MEMORY */
+    #screen-memory { text-align: center; }
+    .mem-stats-row {
+      display: flex; justify-content: center; gap: 14px;
+      font-size: 1rem; font-weight: 600; color: var(--text-muted); margin-bottom: 20px;
+    }
+    .mem-stats-row span {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 16px;
+    }
+    .memory-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 10px; margin: 0 auto; max-width: 560px;
+    }
+    .mem-card { height: 120px; cursor: pointer; perspective: 800px; }
+    .mem-inner {
+      width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
+      transition: transform 0.45s cubic-bezier(0.4,0,0.2,1);
+    }
+    .mem-card.flipped .mem-inner,
+    .mem-card.matched .mem-inner { transform: rotateY(180deg); }
+    .mem-front, .mem-back {
+      position: absolute; width: 100%; height: 100%;
+      backface-visibility: hidden; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; padding: 8px; text-align: center; line-height: 1.3;
+    }
+    .mem-front { background: var(--surface2); border: 2px solid var(--border); font-size: 1.8rem; }
+    .mem-back { transform: rotateY(180deg); font-size: 0.78rem; }
+    .mem-back.es { background: var(--surface); border: 2px solid var(--accent2); color: var(--accent2); }
+    .mem-back.de { background: var(--surface); border: 2px solid var(--accent3); color: var(--text); font-size: 0.72rem; }
+    .mem-card.matched .mem-back { background: rgba(88,204,2,0.1); border-color: var(--accent); color: var(--accent); }
+    .mem-card.wrong-flash .mem-back { border-color: var(--danger); background: rgba(255,75,75,0.08); color: var(--danger); }
+    .mem-win {
+      margin-top: 24px; background: var(--surface); border: 2px solid var(--accent);
+      border-radius: var(--radius); padding: 28px; display: none;
+    }
+    .mem-win.show { display: block; animation: fadeSlideIn 0.4s; }
+    .mem-win h3 { font-size: 1.6rem; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
+    .mem-win p { font-size: 1rem; color: var(--text-muted); margin-bottom: 20px; }
+    @media (max-width: 540px) {
+      .memory-grid { gap: 6px; }
+      .mem-card { height: 80px; }
+      .mem-back, .mem-back.de { font-size: 0.6rem; }
+      .mem-front { font-size: 1.3rem; }
     }
 
     /* LIGHT THEME */
@@ -527,6 +597,16 @@
         <div class="mode-name">Eintippen</div>
         <div class="mode-desc">Schreibe die Übersetzung ohne Auswahlhilfe.</div>
       </div>
+      <div class="mode-card" id="mode-verb" onclick="selectMode('verb')">
+        <div class="mode-icon">🔤</div>
+        <div class="mode-name">Verbkonjugation</div>
+        <div class="mode-desc">Konjugiere Verben im Kontext. Pres. · Pret. Indef. · Imperfecto.</div>
+      </div>
+      <div class="mode-card" id="mode-memory" onclick="selectMode('memory')">
+        <div class="mode-icon">🧩</div>
+        <div class="mode-name">Memory</div>
+        <div class="mode-desc">Finde alle Paare: Spanisch ↔ Deutsch. 8 Paare, 16 Karten.</div>
+      </div>
     </div>
     <button class="btn-primary" onclick="startExercise()">Starten →</button>
   </div>
@@ -575,6 +655,46 @@
              onkeydown="if(event.key==='Enter')checkTyping()" />
       <div class="typing-hint" id="typing-hint"></div>
       <button class="check-btn" id="check-btn" onclick="checkTyping()">Überprüfen</button>
+    </div>
+  </div>
+
+  <!-- VERB CONJUGATION -->
+  <div id="screen-verb" class="screen">
+    <button class="back-link" onclick="goTo('mode')">← Abbrechen</button>
+    <div class="exercise-label">Verbkonjugation · <span id="verb-level-label"></span></div>
+    <div class="verb-card">
+      <div class="verb-badges">
+        <span class="verb-badge tense" id="verb-tense"></span>
+        <span class="verb-badge person" id="verb-person"></span>
+      </div>
+      <div class="verb-inf" id="verb-inf"></div>
+      <div class="verb-subject">Sujeto: <strong id="verb-subject"></strong></div>
+      <div class="verb-sentence" id="verb-sentence"></div>
+    </div>
+    <div class="typing-wrap">
+      <input type="text" class="typing-input" id="verb-input"
+             placeholder="Konjugierte Form eintippen…"
+             onkeydown="if(event.key==='Enter')checkVerb()" />
+      <div class="typing-hint" id="verb-hint"></div>
+      <button class="check-btn" id="verb-check-btn" onclick="checkVerb()">Überprüfen</button>
+    </div>
+    <div class="flash-counter" id="verb-counter">1 / 15</div>
+  </div>
+
+  <!-- MEMORY -->
+  <div id="screen-memory" class="screen">
+    <button class="back-link" onclick="goTo('mode')">← Abbrechen</button>
+    <div class="exercise-label">Memory · <span id="mem-level-label"></span></div>
+    <div class="mem-stats-row">
+      <span id="mem-pairs">0 / 8 Paare</span>
+      <span id="mem-moves">0 Züge</span>
+    </div>
+    <div class="memory-grid" id="memory-grid"></div>
+    <div class="mem-win" id="mem-win">
+      <h3>🏆 Alle Paare gefunden!</h3>
+      <p id="mem-win-msg"></p>
+      <button class="btn-primary" onclick="startMemory()">Nochmal →</button>
+      <button class="btn-secondary" onclick="goTo('mode')">Zurück</button>
     </div>
   </div>
 
@@ -721,6 +841,8 @@ function startExercise() {
   if (!selectedMode) selectMode('mc-es-de');
   state.mode = selectedMode;
   if (state.mode === 'flash') startFlash();
+  else if (state.mode === 'verb') startVerb();
+  else if (state.mode === 'memory') startMemory();
   else startQuiz();
 }
 
@@ -934,7 +1056,8 @@ function buildResultMsg(pct) {
 
 function restartSameMode() {
   document.getElementById('reward-banner').classList.remove('show');
-  startQuiz();
+  if (state.mode === 'verb') startVerb();
+  else startQuiz();
 }
 
 // ── HEARTS ──
@@ -1009,10 +1132,213 @@ function shuffle(arr) {
 }
 
 function modeLabel(m) {
-  return { flash:'Karteikarten', 'mc-es-de':'Spanisch→Deutsch', 'mc-de-es':'Deutsch→Spanisch', type:'Eintippen' }[m] || m;
+  return { flash:'Karteikarten', 'mc-es-de':'Spanisch→Deutsch', 'mc-de-es':'Deutsch→Spanisch', type:'Eintippen', verb:'Verbkonjugation', memory:'Memory' }[m] || m;
 }
 
 updateHeartsDisplay();
+
+// ── VERBS DATA ──
+const VERBS = [
+  { inf:"resistir",     subject:"El pueblo",          tense:"Pret. Indefinido", person:"3ª sing.",
+    sentence:"El pueblo ___ durante años de represión.",              answer:"resistió",       ctx:"resistir (reg. -IR): resistió" },
+  { inf:"tomar",        subject:"Los militares",       tense:"Pret. Indefinido", person:"3ª plur.",
+    sentence:"Los militares ___ el poder en 1973.",                   answer:"tomaron",        ctx:"tomar (reg. -AR): tomaron" },
+  { inf:"exiliarse",    subject:"Muchos artistas",     tense:"Pret. Indefinido", person:"3ª plur.",
+    sentence:"Muchos artistas se ___ tras el golpe.",                 answer:"exiliaron",      ctx:"exiliar(se) (reg. -AR): exiliaron" },
+  { inf:"prohibir",     subject:"La junta",            tense:"Pret. Indefinido", person:"3ª sing.",
+    sentence:"La junta ___ libros y canciones.",                      answer:"prohibió",       ctx:"prohibir (reg. -IR): prohibió" },
+  { inf:"desaparecer",  subject:"Miles de personas",   tense:"Pret. Indefinido", person:"3ª plur.",
+    sentence:"Miles de personas ___ durante la dictadura.",           answer:"desaparecieron", ctx:"desaparecer (reg. -ER): desaparecieron" },
+  { inf:"huir",         subject:"Skármeta",            tense:"Pret. Indefinido", person:"3ª sing.",
+    sentence:"Skármeta ___ al exilio en 1973.",                       answer:"huyó",           ctx:"huir (irr. y→y): huyó" },
+  { inf:"perseguir",    subject:"La DINA",             tense:"Pret. Indefinido", person:"3ª sing.",
+    sentence:"La DINA ___ a los opositores.",                         answer:"persiguió",      ctx:"perseguir (irr. e→i): persiguió" },
+  { inf:"silenciar",    subject:"La censura",          tense:"Pret. Indefinido", person:"3ª sing.",
+    sentence:"La censura ___ toda voz crítica.",                      answer:"silenció",       ctx:"silenciar (reg. -AR): silenció" },
+  { inf:"luchar",       subject:"El movimiento",       tense:"Imperfecto",       person:"3ª sing.",
+    sentence:"El movimiento ___ por la democracia.",                  answer:"luchaba",        ctx:"luchar (-AR imperfecto): -aba" },
+  { inf:"sufrir",       subject:"La población",        tense:"Imperfecto",       person:"3ª sing.",
+    sentence:"La población ___ bajo el régimen militar.",             answer:"sufría",         ctx:"sufrir (-IR imperfecto): -ía" },
+  { inf:"vivir",        subject:"Los exiliados",       tense:"Imperfecto",       person:"3ª plur.",
+    sentence:"Los exiliados ___ lejos de su patria.",                 answer:"vivían",         ctx:"vivir (-IR imperfecto plur.): -ían" },
+  { inf:"denunciar",    subject:"Los escritores",      tense:"Imperfecto",       person:"3ª plur.",
+    sentence:"Los escritores ___ las injusticias.",                   answer:"denunciaban",    ctx:"denunciar (-AR imperfecto plur.): -aban" },
+  { inf:"narrar",       subject:"Skármeta",            tense:"Presente",         person:"3ª sing.",
+    sentence:"Skármeta ___ la realidad chilena con compromiso.",      answer:"narra",          ctx:"narrar (-AR presente): -a" },
+  { inf:"preservar",    subject:"La literatura",       tense:"Presente",         person:"3ª sing.",
+    sentence:"La literatura ___ la memoria colectiva.",               answer:"preserva",       ctx:"preservar (-AR presente): -a" },
+  { inf:"recordar",     subject:"Las familias",        tense:"Presente",         person:"3ª plur.",
+    sentence:"Las familias ___ a los desaparecidos.",                 answer:"recuerdan",      ctx:"recordar (o→ue diptongación): recuerdan" },
+];
+
+// ── VERB CONJUGATION ──
+let verbState = { items: [], index: 0, correct: 0, wrong: 0, awaitingNext: false };
+
+function startVerb() {
+  verbState.items = shuffle([...VERBS]);
+  verbState.index = 0; verbState.correct = 0; verbState.wrong = 0; verbState.awaitingNext = false;
+  state.lives = 3; state.streak = 0; state.xp = 0;
+  updateHeartsDisplay();
+  document.getElementById('verb-level-label').textContent = LEVEL_NAMES[state.level];
+  goTo('verb');
+  renderVerb();
+}
+
+function renderVerb() {
+  const v = verbState.items[verbState.index];
+  document.getElementById('verb-tense').textContent = v.tense;
+  document.getElementById('verb-person').textContent = v.person;
+  document.getElementById('verb-inf').textContent = v.inf;
+  document.getElementById('verb-subject').textContent = v.subject;
+  document.getElementById('verb-sentence').innerHTML =
+    v.sentence.replace('___', '<span class="gap">___</span>');
+  document.getElementById('verb-hint').textContent = '';
+  document.getElementById('verb-counter').textContent =
+    (verbState.index + 1) + ' / ' + verbState.items.length;
+  const inp = document.getElementById('verb-input');
+  inp.value = ''; inp.className = 'typing-input'; inp.disabled = false;
+  const btn = document.getElementById('verb-check-btn');
+  btn.textContent = 'Überprüfen'; btn.disabled = false;
+  verbState.awaitingNext = false;
+  inp.focus();
+}
+
+function checkVerb() {
+  if (verbState.awaitingNext) { nextVerb(); return; }
+  const v = verbState.items[verbState.index];
+  const inp = document.getElementById('verb-input');
+  const normalize = s => s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const ok = normalize(inp.value) === normalize(v.answer);
+  verbState.awaitingNext = true;
+  inp.disabled = true;
+  document.getElementById('verb-check-btn').textContent = 'Weiter →';
+  const hint = document.getElementById('verb-hint');
+  if (ok) {
+    inp.classList.add('correct');
+    verbState.correct++;
+    state.streak++;
+    state.xp += 10 + (state.streak >= 3 ? 5 : 0);
+    document.getElementById('stat-streak').textContent = state.streak;
+    if (state.streak % 3 === 0) showStreakPopup(state.streak);
+    hint.textContent = '✅ ' + v.ctx;
+    hint.style.color = 'var(--accent)';
+  } else {
+    inp.classList.add('wrong');
+    verbState.wrong++;
+    state.streak = 0;
+    state.lives = Math.max(0, state.lives - 1);
+    document.getElementById('stat-streak').textContent = 0;
+    updateHeartsDisplay();
+    hint.textContent = '❌ Richtig: ' + v.answer + ' — ' + v.ctx;
+    hint.style.color = 'var(--danger)';
+  }
+}
+
+function nextVerb() {
+  verbState.index++;
+  if (verbState.index >= verbState.items.length) {
+    state.correct = verbState.correct;
+    state.wrong = verbState.wrong;
+    showResults();
+  } else {
+    renderVerb();
+  }
+}
+
+// ── MEMORY ──
+let memState = { cards: [], flipped: [], matched: 0, moves: 0, lock: false };
+
+function startMemory() {
+  state.lives = 3; state.streak = 0; state.xp = 0;
+  updateHeartsDisplay();
+  const vocab = shuffle([...state.currentSet]).slice(0, 8);
+  const raw = [];
+  vocab.forEach((item, i) => {
+    raw.push({ id: i * 2,     pairId: i, type: 'es', text: item.es, matched: false });
+    raw.push({ id: i * 2 + 1, pairId: i, type: 'de', text: shortDE(item.de), matched: false });
+  });
+  memState.cards = shuffle(raw);
+  memState.flipped = [];
+  memState.matched = 0;
+  memState.moves = 0;
+  memState.lock = false;
+  document.getElementById('mem-level-label').textContent = LEVEL_NAMES[state.level];
+  document.getElementById('mem-pairs').textContent = '0 / 8 Paare';
+  document.getElementById('mem-moves').textContent = '0 Züge';
+  document.getElementById('mem-win').classList.remove('show');
+  renderMemoryGrid();
+  goTo('memory');
+}
+
+function shortDE(str) { return str.split('/')[0].trim(); }
+
+function renderMemoryGrid() {
+  const grid = document.getElementById('memory-grid');
+  grid.innerHTML = '';
+  memState.cards.forEach(card => {
+    const el = document.createElement('div');
+    el.className = 'mem-card';
+    el.dataset.id = card.id;
+    el.innerHTML = `<div class="mem-inner">
+      <div class="mem-front">🎴</div>
+      <div class="mem-back ${card.type}">${card.text}</div>
+    </div>`;
+    el.addEventListener('click', () => flipMemCard(card.id));
+    grid.appendChild(el);
+  });
+}
+
+function flipMemCard(id) {
+  if (memState.lock) return;
+  const card = memState.cards.find(c => c.id === id);
+  if (!card || card.matched) return;
+  const el = document.querySelector(`.mem-card[data-id="${id}"]`);
+  if (el.classList.contains('flipped')) return;
+  el.classList.add('flipped');
+  memState.flipped.push(id);
+  if (memState.flipped.length === 2) {
+    memState.moves++;
+    document.getElementById('mem-moves').textContent = memState.moves + ' Züge';
+    memState.lock = true;
+    checkMemMatch();
+  }
+}
+
+function checkMemMatch() {
+  const [id1, id2] = memState.flipped;
+  const c1 = memState.cards.find(c => c.id === id1);
+  const c2 = memState.cards.find(c => c.id === id2);
+  const el1 = document.querySelector(`.mem-card[data-id="${id1}"]`);
+  const el2 = document.querySelector(`.mem-card[data-id="${id2}"]`);
+  if (c1.pairId === c2.pairId) {
+    c1.matched = c2.matched = true;
+    el1.classList.add('matched'); el2.classList.add('matched');
+    memState.matched++;
+    memState.flipped = [];
+    memState.lock = false;
+    document.getElementById('mem-pairs').textContent = memState.matched + ' / 8 Paare';
+    state.xp += 15;
+    if (memState.matched === 8) memoryWin();
+  } else {
+    el1.classList.add('wrong-flash'); el2.classList.add('wrong-flash');
+    setTimeout(() => {
+      el1.classList.remove('flipped', 'wrong-flash');
+      el2.classList.remove('flipped', 'wrong-flash');
+      memState.flipped = [];
+      memState.lock = false;
+    }, 1100);
+  }
+}
+
+function memoryWin() {
+  state.totalXP += state.xp;
+  document.getElementById('stat-xp').textContent = state.totalXP;
+  const win = document.getElementById('mem-win');
+  document.getElementById('mem-win-msg').textContent =
+    memState.moves + ' Züge · +' + state.xp + ' XP verdient!';
+  win.classList.add('show');
+  setTimeout(launchKonfetti, 300);
+}
 
 // ── THEME ──
 function toggleTheme() {
