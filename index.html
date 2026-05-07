@@ -159,6 +159,22 @@
     .mode-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px;
     }
+    .mode-section-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 4px 0 16px; color: var(--text-muted); font-size: 0.85rem;
+      font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .mode-section-divider::before, .mode-section-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .mode-card-featured {
+      background: linear-gradient(135deg, rgba(88,204,2,0.07), rgba(206,130,255,0.07));
+      border: 2px solid var(--border);
+      border-radius: var(--radius); padding: 28px 20px;
+      cursor: pointer; transition: all 0.2s; text-align: center; margin-bottom: 28px;
+    }
+    .mode-card-featured:hover { border-color: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(206,130,255,0.12); }
+    .mode-card-featured.selected { border-color: var(--accent2); background: rgba(206,130,255,0.1); }
     .mode-card {
       background: var(--surface); border: 2px solid var(--border);
       border-radius: var(--radius); padding: 28px 20px;
@@ -529,6 +545,14 @@
       font-size: 1.2rem; font-weight: 800; cursor: pointer; transition: background 0.15s;
     }
     .ast-submit-btn:hover { background: #6ee803; }
+    .ast-star-ctrl { display: inline-flex; align-items: center; gap: 2px; }
+    .ast-star {
+      cursor: pointer; font-size: 1.1rem; opacity: 0.25;
+      transition: opacity 0.15s, transform 0.1s;
+      user-select: none;
+    }
+    .ast-star:hover { transform: scale(1.25); }
+    .ast-star.on { opacity: 1; }
     @keyframes astShake {
       0%,100% { transform: translateX(0); }
       20%,60% { transform: translateX(-8px); }
@@ -696,6 +720,12 @@
         <div class="mode-desc">Verknüpfe Wortpaare richtig und bring dein Auto ins Ziel!</div>
       </div>
     </div>
+    <div class="mode-section-divider">Herausforderung</div>
+    <div class="mode-card-featured" id="mode-double" onclick="selectMode('double')">
+      <div class="mode-icon">🔀</div>
+      <div class="mode-name">Double</div>
+      <div class="mode-desc">Tippe die Übersetzung — Richtung wechselt zufällig pro Frage: ES→DE und DE→ES.</div>
+    </div>
     <button class="btn-primary" onclick="startExercise()">Starten →</button>
   </div>
 
@@ -809,7 +839,12 @@
       <div class="ast-score-bar"><div class="ast-score-bar-fill" id="ast-score-fill"></div></div>
       <div class="ast-score-num">
         <span id="ast-score-num">0 / 10</span>
-        <span id="ast-speed-label">Geschwindigkeit: ⭐</span>
+        <span class="ast-star-ctrl">
+          Geschwindigkeit:
+          <span class="ast-star" id="ast-star-1" onclick="astSetSpeed(1)" title="Langsam (~15s)">⭐</span>
+          <span class="ast-star" id="ast-star-2" onclick="astSetSpeed(2)" title="Mittel (~10s)">⭐</span>
+          <span class="ast-star" id="ast-star-3" onclick="astSetSpeed(3)" title="Schnell (~6s)">⭐</span>
+        </span>
       </div>
     </div>
     <canvas id="ast-canvas" width="632" height="340"></canvas>
@@ -949,14 +984,14 @@ function selectLevel(lv) {
   state.currentSet = [...LEVEL_SETS[lv]];
   document.getElementById('mode-title').textContent = LEVEL_NAMES[lv];
   selectedMode = null;
-  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.mode-card, .mode-card-featured').forEach(c => c.classList.remove('selected'));
   goTo('mode');
 }
 
 let selectedMode = null;
 function selectMode(m) {
   selectedMode = m;
-  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.mode-card, .mode-card-featured').forEach(c => c.classList.remove('selected'));
   document.getElementById('mode-' + m).classList.add('selected');
 }
 
@@ -968,7 +1003,18 @@ function startExercise() {
   else if (state.mode === 'memory') startMemory();
   else if (state.mode === 'asteroids') startAsteroidGame();
   else if (state.mode === 'race') startRaceGame();
+  else if (state.mode === 'double') startDoubleQuiz();
   else startQuiz();
+}
+
+function startDoubleQuiz() {
+  state.quizItems = shuffle([...state.currentSet]).map(item => ({
+    ...item, _dir: Math.random() < 0.5 ? 'es-de' : 'de-es'
+  }));
+  state.qIndex = 0; state.correct = 0; state.wrong = 0;
+  state.lives = 3; state.streak = 0; state.xp = 0;
+  state.awaitingNext = false;
+  updateHeartsDisplay(); renderProgress(); goTo('quiz'); renderQuestion();
 }
 
 // ── FLASHCARD ──
@@ -1012,15 +1058,21 @@ function startQuiz() {
 function renderQuestion() {
   if (state.qIndex >= state.quizItems.length || state.lives <= 0) { showResults(); return; }
   const item = state.quizItems[state.qIndex];
-  const isEsDE = state.mode === 'mc-es-de';
-  const isType = state.mode === 'type';
+  const isDouble = state.mode === 'double';
+  const isEsDE = isDouble ? item._dir === 'es-de' : state.mode === 'mc-es-de';
+  const isType = state.mode === 'type' || isDouble;
+  const srcIsEs = isEsDE || state.mode === 'type';
+
+  let dirLabel;
+  if (isDouble) dirLabel = isEsDE ? 'Español → Deutsch (eintippen)' : 'Deutsch → Español (eintippen)';
+  else if (isType) dirLabel = 'Español → Deutsch (eintippen)';
+  else dirLabel = isEsDE ? 'Español → Deutsch' : 'Deutsch → Español';
 
   document.getElementById('quiz-exercise-label').textContent =
     LEVEL_NAMES[state.level] + ' · ' + modeLabel(state.mode);
-  document.getElementById('quiz-direction').textContent =
-    isType ? 'Spanisch → Deutsch (eintippen)' : (isEsDE ? 'Spanisch → Deutsch' : 'Deutsch → Spanisch');
-  document.getElementById('quiz-word').textContent = (isEsDE || isType) ? item.es : item.de;
-  document.getElementById('quiz-context').textContent = (isEsDE || isType) ? item.ctx_es : item.ctx_de;
+  document.getElementById('quiz-direction').textContent = dirLabel;
+  document.getElementById('quiz-word').textContent = srcIsEs ? item.es : item.de;
+  document.getElementById('quiz-context').textContent = srcIsEs ? item.ctx_es : item.ctx_de;
 
   if (!isType) {
     renderMC(item, isEsDE);
@@ -1069,14 +1121,22 @@ function handleMC(btn, chosen, correct, item) {
 function checkTyping() {
   if (state.awaitingNext) return;
   const item = state.quizItems[state.qIndex];
+  const isDouble = state.mode === 'double';
+  const targetIsDE = !isDouble || item._dir === 'es-de';
   const inp = document.getElementById('typing-input');
   const answer = inp.value.trim().toLowerCase();
-  const target = item.de.toLowerCase();
-  const mainTarget = target.split('/')[0].trim().replace(/^(der|die|das)\s+/, '').trim();
-  const userClean = answer.replace(/^(der|die|das)\s+/, '').trim();
-  const ok = answer === target
-    || answer.includes(mainTarget)
-    || (mainTarget.includes(userClean) && userClean.length > 3);
+  let ok;
+  if (targetIsDE) {
+    const target = item.de.toLowerCase();
+    const mainTarget = target.split('/')[0].trim().replace(/^(der|die|das)\s+/, '').trim();
+    const userClean = answer.replace(/^(der|die|das)\s+/, '').trim();
+    ok = answer === target || answer.includes(mainTarget) || (mainTarget.includes(userClean) && userClean.length > 3);
+  } else {
+    const target = item.es.toLowerCase();
+    const mainTarget = target.split('/')[0].trim().replace(/^(el|la|los|las)\s+/, '').trim();
+    const userClean = answer.replace(/^(el|la|los|las)\s+/, '').trim();
+    ok = answer === target || answer.includes(mainTarget) || (mainTarget.includes(userClean) && userClean.length > 3);
+  }
   state.awaitingNext = true;
   inp.disabled = true;
   document.getElementById('check-btn').disabled = true;
@@ -1184,6 +1244,7 @@ function restartSameMode() {
   if (state.mode === 'verb') startVerb();
   else if (state.mode === 'asteroids') startAsteroidGame();
   else if (state.mode === 'race') startRaceGame();
+  else if (state.mode === 'double') startDoubleQuiz();
   else startQuiz();
 }
 
@@ -1259,7 +1320,7 @@ function shuffle(arr) {
 }
 
 function modeLabel(m) {
-  return { flash:'Karteikarten', 'mc-es-de':'Spanisch→Deutsch', 'mc-de-es':'Deutsch→Spanisch', type:'Eintippen', verb:'Verbkonjugation', memory:'Memory', asteroids:'Asteroiden', race:'Autorennen' }[m] || m;
+  return { flash:'Karteikarten', 'mc-es-de':'Spanisch→Deutsch', 'mc-de-es':'Deutsch→Spanisch', type:'Eintippen', verb:'Verbkonjugation', memory:'Memory', asteroids:'Asteroiden', race:'Autorennen', double:'Double' }[m] || m;
 }
 
 updateHeartsDisplay();
@@ -1752,14 +1813,32 @@ function raceShowWin() {
 // ── ASTEROID GAME ──
 const AST_COLORS = ['#ce82ff','#ff9600','#58cc02','#00d4ff','#ff4b4b','#ffeb3b'];
 let starsCanvas = null;
+// px/sec — distance ~430px: Langsam=15s, Normal=10s, Schnell=6s
+const AST_SPEED_MAP = { 1: 29, 2: 43, 3: 72 };
+const AST_SPEED_MAX = { 1: 58, 2: 86, 3: 144 };
+let astSpeedLevel = 1;
+
+function astGetBaseSpeed() { return AST_SPEED_MAP[astSpeedLevel]; }
+
+function astSetSpeed(level) {
+  astSpeedLevel = level;
+  [1, 2, 3].forEach(n => {
+    const el = document.getElementById('ast-star-' + n);
+    if (el) el.classList.toggle('on', n <= level);
+  });
+  astState.speed = AST_SPEED_MAP[level];
+  if (astState.asteroid) astState.asteroid.speed = astState.speed;
+}
+
 let astState = {
-  running: false, score: 0, correctCount: 0, speed: 1.0,
+  running: false, score: 0, correctCount: 0, speed: 0.5,
   asteroid: null, particles: [], raf: null, canvas: null, ctx: null,
 };
 
 function startAsteroidGame() {
   astState.running = true;
-  astState.score = 0; astState.correctCount = 0; astState.speed = 1.0;
+  astState.score = 0; astState.correctCount = 0; astLastTs = 0;
+  astSetSpeed(astSpeedLevel);
   astState.particles = []; astState.asteroid = null;
   if (astState.raf) cancelAnimationFrame(astState.raf);
   state.lives = 3; state.streak = 0; state.xp = 0;
@@ -1809,8 +1888,12 @@ function astSpawn() {
   inp.value = ''; inp.className = ''; inp.disabled = false; inp.focus();
 }
 
-function astLoop() {
+let astLastTs = 0;
+function astLoop(ts = 0) {
   if (!astState.running) return;
+  const dt = Math.min((ts - astLastTs) / 1000, 0.1);
+  astLastTs = ts;
+
   const {canvas, ctx, asteroid, particles} = astState;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   astDrawBg(ctx, canvas);
@@ -1832,7 +1915,7 @@ function astLoop() {
   // Asteroid
   if (asteroid) {
     if (!asteroid.exploding) {
-      asteroid.y += asteroid.speed;
+      asteroid.y += asteroid.speed * dt;
       asteroid.rotation += asteroid.rotSpeed;
       const danger = asteroid.y / canvas.height > 0.58;
       astDrawAsteroid(ctx, asteroid, danger);
@@ -1947,7 +2030,7 @@ function submitAsteroid() {
     state.streak++;
     document.getElementById('stat-streak').textContent = state.streak;
     if (state.streak % 3 === 0) showStreakPopup(state.streak);
-    if (astState.correctCount % 2 === 0) astState.speed = Math.min(5.2, astState.speed + 0.35);
+    if (astState.correctCount % 2 === 0) astState.speed = Math.min(AST_SPEED_MAX[astSpeedLevel], astState.speed + 9);
     updateAstScore();
     if (astState.score >= 10) setTimeout(() => { stopAsteroidGame(); astShowWin(); }, 700);
   } else {
